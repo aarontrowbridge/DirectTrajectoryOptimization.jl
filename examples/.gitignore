@@ -1,4 +1,4 @@
-**/*.ipynb
+# **/*.ipynb
 **/*.md
 !README.md
 Project.toml 
