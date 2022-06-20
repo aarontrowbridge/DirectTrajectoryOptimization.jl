@@ -22,24 +22,24 @@ function Cost(
     evaluate = f(x, u, w)
     gradient = Symbolics.gradient(evaluate, [x; u])
     num_gradient = num_state + num_action
-    evaluate_func = eval(Symbolics.build_function([evaluate], x, u, w)[2])
-    gradient_func = eval(Symbolics.build_function(gradient, x, u, w)[2])
+    evaluate_func! = eval(Symbolics.build_function([evaluate], x, u, w)[2])
+    gradient_func! = eval(Symbolics.build_function(gradient, x, u, w)[2])
 
     if evaluate_hessian
         hessian = Symbolics.sparsehessian(evaluate, [x; u])
-        hessian_func = eval(Symbolics.build_function(hessian.nzval, x, u, w)[2])
+        hessian_func! = eval(Symbolics.build_function(hessian.nzval, x, u, w)[2])
         sparsity = [findnz(hessian)[1:2]...]
         num_hessian = length(hessian.nzval)
     else
-        hessian_func = Expr(:null)
+        hessian_func! = Expr(:null)
         sparsity = [Int[]]
         num_hessian = 0
     end
 
     return Cost(
-        evaluate_func,
-        gradient_func,
-        hessian_func,
+        evaluate_func!,
+        gradient_func!,
+        hessian_func!,
         num_gradient,
         num_hessian,
         sparsity,
@@ -74,8 +74,12 @@ function gradient!(
     parameters
 )
     for (t, cost) in enumerate(objective)
-        cost.gradient(cost.gradient_cache, states[t], actions[t], parameters[t])
-        # @info "array sizes" size(gradient[indices[t]]) size(cost.gradient_cache)
+        cost.gradient(
+            cost.gradient_cache,
+            states[t],
+            actions[t],
+            parameters[t]
+        )
         @views gradient[indices[t]] .+= cost.gradient_cache[1:length(indices[t])]
         # fill!(cost.gradient_cache, 0.0) # TODO: confirm this is necessary
     end
@@ -91,7 +95,12 @@ function hessian!(
     scaling
 )
     for (t, cost) in enumerate(objective)
-        cost.hessian(cost.hessian_cache, states[t], actions[t], parameters[t])
+        cost.hessian(
+            cost.hessian_cache,
+            states[t],
+            actions[t],
+            parameters[t]
+        )
         cost.hessian_cache .*= scaling
         @views hessian[indices[t]] .+= cost.hessian_cache
         # fill!(cost.hessian_cache, 0.0) # TODO: confirm this is necessary

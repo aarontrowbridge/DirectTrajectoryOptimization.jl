@@ -1,10 +1,9 @@
-function linear_interpolation(initial_state, final_state, horizon)
-    n = length(initial_state)
-    X = [copy(Array(initial_state)) for t = 1:horizon]
-    for t = 1:horizon
-        for i = 1:n
-            X[t][i] = (final_state[i] - initial_state[i]) / (horizon - 1) * (t - 1) + initial_state[i]
-        end
+function linear_interpolation(x1, xT, T)
+    X = Vector{typeof(x1)}(undef, T)
+    Δx = xT - x1
+    Δt = T - 1
+    for t = 1:T
+        X[t] = x1 + Δx * (t - 1) / Δt
     end
     return X
 end
